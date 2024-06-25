@@ -33,6 +33,8 @@ func NewFiberServer(lc fx.Lifecycle, contactHandlers *contact.ContactHandler, ca
 	categoryGroup.Post("/add-category", categoryHandlers.AddCategory)
 	categoryGroup.Get("/get-categories", categoryHandlers.GetCategoryList)
 	categoryGroup.Delete("/delete-category/:id", categoryHandlers.DeleteCategory)
+	categoryGroup.Patch("/update-category/:id", categoryHandlers.UpdateCategoryLabel)
+	categoryGroup.Get("/get-category/:id", categoryHandlers.GetCategory)
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {

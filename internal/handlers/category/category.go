@@ -2,6 +2,7 @@ package category
 
 import (
 	"database/sql"
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -112,4 +113,79 @@ func (handler *CategoryHandler) DeleteCategory(ctx *fiber.Ctx) error {
 		Success: true,
 	}
 	return ctx.Status(fiber.StatusOK).JSON(res)
+}
+
+type updateCategoryLabelRequest struct {
+	Label string `json:"label"`
+}
+
+// UpdateCategoryLabel swagger
+// @Summary Update category label
+// @Description Update the label of a category
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Param id path int true "Category ID"
+// @Param body body updateCategoryLabelRequest true "Category details"
+// @Success 200 {object} basicResponse
+// @Failure 400 {string} string "Bad Request"
+// @Failure 404 {string} string "Not Found"
+// @Router /categories/update-category/{id} [patch]
+func (handler *CategoryHandler) UpdateCategoryLabel(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+
+	var req updateCategoryLabelRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).SendString("Invalid request body")
+	}
+
+	categoryID, err := strconv.Atoi(id)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).SendString("Invalid category ID")
+	}
+
+	err = handler.Storage.UpdateCategoryLabel(categoryID, req.Label)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).SendString(fmt.Sprintf("Failed to update category label: %v", err))
+	}
+
+	resp := basicResponse{Success: true}
+	return ctx.Status(fiber.StatusOK).JSON(resp)
+}
+
+type fetchCategoryRespones struct {
+	Category storage.Category `json:"category"`
+}
+
+// GetCategory swagger
+// @Summary Get a category by ID
+// @Description Retrieve details of a category based on the provided ID
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Param id path int true "Category ID"
+// @Success 200 {object} fetchCategoryRespones
+// @Failure 400 {string} string "Bad Request"
+// @Failure 404 {string} string "Not Found"
+// @Router /categories/get-category/{id} [get]
+func (handler *CategoryHandler) GetCategory(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+
+	categoryId, err := strconv.Atoi(id)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).SendString("Invalid category ID")
+	}
+
+	category, err := handler.Storage.GetCategory(categoryId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return ctx.Status(fiber.StatusInternalServerError).SendString("Category not found")
+		}
+		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	resp := fetchCategoryRespones{
+		Category: category,
+	}
+	return ctx.Status(fiber.StatusOK).JSON(resp)
 }

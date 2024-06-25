@@ -82,3 +82,40 @@ func (storage *CategoryStorage) DeleteCategory(id int) error {
 	}
 	return nil
 }
+
+func (storage *CategoryStorage) UpdateCategoryLabel(id int, label string) error {
+	stmt := `
+		UPDATE categories 
+		SET label = $1 
+		WHERE id = $2 
+		AND NOT EXISTS (
+    		SELECT 1 FROM categories 
+    		WHERE label = $1 
+    		AND id != $2
+		)
+	`
+	resp, err := storage.DB.Exec(stmt, label, id)
+	if err != nil {
+		return fmt.Errorf("error updating category label: %v", err)
+	}
+
+	rowsAffected, err := resp.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error getting rows affected: %v", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("category label '%s' already exists for another category", label)
+	}
+
+	return nil
+}
+
+func (storage *CategoryStorage) GetCategory(id int) (Category, error) {
+	var category Category
+	selectStmt := "SELECT id, label, created_at FROM categories WHERE id = $1"
+	if err := storage.DB.Get(&category, selectStmt, id); err != nil {
+		return category, fmt.Errorf("error fetching category: %v", err)
+	}
+	return category, nil
+}

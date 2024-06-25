@@ -21,6 +21,16 @@ definitions:
       id:
         type: integer
     type: object
+  category.fetchCategoryRespones:
+    properties:
+      category:
+        $ref: '#/definitions/storage.Category'
+    type: object
+  category.updateCategoryLabelRequest:
+    properties:
+      label:
+        type: string
+    type: object
   contact.basicResponse:
     properties:
       success:
@@ -146,6 +156,70 @@ paths:
           schema:
             $ref: '#/definitions/category.categoryListResponse'
       summary: Get list of categories
+      tags:
+      - Categories
+  /categories/get-category/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of a category based on the provided ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/category.fetchCategoryRespones'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Get a category by ID
+      tags:
+      - Categories
+  /categories/update-category/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Update the label of a category
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Category details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/category.updateCategoryLabelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/category.basicResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Update category label
       tags:
       - Categories
   /contacts/delete-contact/{id}:
