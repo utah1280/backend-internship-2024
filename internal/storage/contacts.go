@@ -3,6 +3,7 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -24,6 +25,17 @@ type NewContactInput struct {
 	Email   string
 	Address string
 	Label   string
+}
+
+type Contact_ struct {
+	Id         int       `json:"id" db:"id"`
+	Name       string    `json:"name" db:"name"`
+	Phone      string    `json:"phone" db:"phone"`
+	Email      string    `json:"email" db:"email"`
+	Address    string    `json:"address" db:"address"`
+	CategoryId int       `json:"category_id" db:"category_id"`
+	Category   string    `json:"category" db:"category"`
+	CreatedAt  time.Time `json:"created_at" db:"created_at"`
 }
 
 type ContactStorage struct {
@@ -63,9 +75,14 @@ func (storage *ContactStorage) CreateContact(data NewContactInput) (int, error) 
 	}
 }
 
-func (storage *ContactStorage) GetContact(id int) (Contact, error) {
-	var contact Contact
-	selectStmt := "SELECT id, name, phone, email, address, category_id, created_at FROM contacts WHERE id = $1"
+func (storage *ContactStorage) GetContact(id int) (Contact_, error) {
+	var contact Contact_
+	selectStmt := `
+		SELECT c.id, c.name, c.phone, c.email, c.address, c.category_id, cat.label as category, c.created_at 
+		FROM contacts c
+		LEFT JOIN categories cat ON c.category_id = cat.id
+		WHERE c.id = $1
+	`
 	if err := storage.DB.Get(&contact, selectStmt, id); err != nil {
 		return contact, fmt.Errorf("error fetching contact: %v", err)
 	}
@@ -78,4 +95,74 @@ func (storage *ContactStorage) DeleteContact(id int) error {
 		return fmt.Errorf("error deleting contact: %v", err)
 	}
 	return nil
+}
+
+func (storage *ContactStorage) GetContacts(limit, offset int, name, email, category, sortDir string) ([]Contact_, error) {
+	var contacts []Contact_
+	stmt := `
+		SELECT c.id, c.name, c.phone, c.email, c.address, c.category_id, cat.label as category, c.created_at 
+		FROM contacts c
+		LEFT JOIN categories cat ON c.category_id = cat.id
+		WHERE 1=1
+	`
+
+	args := []interface{}{}
+	argCount := 1
+
+	if name != "" {
+		stmt += " AND c.name ILIKE $" + strconv.Itoa(argCount)
+		args = append(args, "%"+name+"%")
+		argCount++
+	}
+
+	if email != "" {
+		stmt += " AND c.email ILIKE $" + strconv.Itoa(argCount)
+		args = append(args, "%"+email+"%")
+		argCount++
+	}
+
+	if category != "" {
+		stmt += `
+			AND c.category_id IN (
+				SELECT id FROM categories WHERE label ILIKE $` + strconv.Itoa(argCount) + `
+			)
+		`
+		args = append(args, "%"+category+"%")
+		argCount++
+	}
+
+	if sortDir != "" {
+		stmt += " ORDER BY c.created_at " + sortDir
+	}
+
+	if limit > 0 {
+		stmt += " LIMIT $" + strconv.Itoa(argCount)
+		args = append(args, limit)
+		argCount++
+	}
+
+	if offset > 0 {
+		if limit <= 0 {
+			return nil, fmt.Errorf("offset specified without limit")
+		}
+		stmt += " OFFSET $" + strconv.Itoa(argCount)
+		args = append(args, offset)
+		argCount++
+	}
+
+	if offset > 0 {
+		if limit <= 0 {
+			return nil, fmt.Errorf("offset specified without limit")
+		}
+		stmt += " OFFSET $" + strconv.Itoa(argCount)
+		args = append(args, offset)
+		argCount++
+	}
+
+	err := storage.DB.Select(&contacts, stmt, args...)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving contacts: %v", err)
+	}
+
+	return contacts, nil
 }

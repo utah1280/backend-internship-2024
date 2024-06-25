@@ -29,8 +29,6 @@ volume-prune:
 	sudo docker volume prune
 
 # Migrate
-FLAG:=
-
 migrate-init:
 	migrate create -ext=sql -dir=${MIGRATIONS_PATH} -seq init
 
@@ -39,9 +37,6 @@ migrate-up:
 
 migrate-down:
 	migrate -path=${MIGRATIONS_PATH} -database "${POSTGRES_PATH}?sslmode=disable" -verbose down	
-
-migrage-fix:
-	migrate -path=${MIGRATIONS_PATH} -database "${POSTGRES_PATH}?sslmode=disable" -verbose force ${FLAG}	
 
 # Go
 run:

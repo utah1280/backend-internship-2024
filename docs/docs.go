@@ -307,6 +307,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/contacts/get-contacts": {
+            "get": {
+                "description": "Retrieve a list of contacts with optional filtering, sorting, and pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Contacts"
+                ],
+                "summary": "Get list of contacts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Limit results per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset results for pagination",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by contact name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by contact email",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by category label",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort direction (ASC default)",
+                        "name": "sortDir",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/storage.Contact_"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/contacts/new-contact": {
             "post": {
                 "description": "Create a new contact with the given details",
@@ -446,7 +510,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "contact": {
-                    "$ref": "#/definitions/storage.Contact"
+                    "$ref": "#/definitions/storage.Contact_"
                 }
             }
         },
@@ -464,10 +528,13 @@ const docTemplate = `{
                 }
             }
         },
-        "storage.Contact": {
+        "storage.Contact_": {
             "type": "object",
             "properties": {
                 "address": {
+                    "type": "string"
+                },
+                "category": {
                     "type": "string"
                 },
                 "category_id": {

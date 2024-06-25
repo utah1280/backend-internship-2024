@@ -66,7 +66,7 @@ func (handler *ContactHandler) CreateContact(ctx *fiber.Ctx) error {
 }
 
 type fetchContactResponse struct {
-	Contact storage.Contact `json:"contact"`
+	Contact storage.Contact_ `json:"contact"`
 }
 
 // GetContact swagger
@@ -133,4 +133,50 @@ func (handler *ContactHandler) DeleteContact(ctx *fiber.Ctx) error {
 		Success: true,
 	}
 	return ctx.Status(fiber.StatusOK).JSON(res)
+}
+
+type contactListResponse struct {
+	Contacts []storage.Contact_ `json:"contact"`
+}
+
+// GetContacts swagger
+// @Summary Get list of contacts
+// @Description Retrieve a list of contacts with optional filtering, sorting, and pagination
+// @Tags Contacts
+// @Accept json
+// @Produce json
+// @Param limit query int false "Limit results per page"
+// @Param offset query int false "Offset results for pagination"
+// @Param name query string false "Filter by contact name"
+// @Param email query string false "Filter by contact email"
+// @Param category query string false "Filter by category label"
+// @Param sortDir query string false "Sort direction (ASC default)"
+// @Success 200 {array} storage.Contact_
+// @Router /contacts/get-contacts [get]
+func (handler *ContactHandler) GetContacts(ctx *fiber.Ctx) error {
+	limit, err := strconv.Atoi(ctx.Query("limit", "10"))
+	if err != nil {
+		limit = 10
+	}
+
+	offset, err := strconv.Atoi(ctx.Query("offset", "0"))
+	if err != nil {
+		offset = 0
+	}
+
+	name := ctx.Query("name", "")
+	email := ctx.Query("email", "")
+	category := ctx.Query("category", "")
+	sortDir := ctx.Query("sortDir", "ASC")
+
+	contacts, err := handler.Storage.GetContacts(limit, offset, name, email, category, sortDir)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	resp := contactListResponse{
+		Contacts: contacts,
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(resp)
 }

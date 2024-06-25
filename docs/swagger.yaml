@@ -57,7 +57,7 @@ definitions:
   contact.fetchContactResponse:
     properties:
       contact:
-        $ref: '#/definitions/storage.Contact'
+        $ref: '#/definitions/storage.Contact_'
     type: object
   storage.Category:
     properties:
@@ -68,9 +68,11 @@ definitions:
       label:
         type: string
     type: object
-  storage.Contact:
+  storage.Contact_:
     properties:
       address:
+        type: string
+      category:
         type: string
       category_id:
         type: integer
@@ -278,6 +280,49 @@ paths:
           schema:
             type: string
       summary: Get a contact by ID
+      tags:
+      - Contacts
+  /contacts/get-contacts:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of contacts with optional filtering, sorting, and
+        pagination
+      parameters:
+      - description: Limit results per page
+        in: query
+        name: limit
+        type: integer
+      - description: Offset results for pagination
+        in: query
+        name: offset
+        type: integer
+      - description: Filter by contact name
+        in: query
+        name: name
+        type: string
+      - description: Filter by contact email
+        in: query
+        name: email
+        type: string
+      - description: Filter by category label
+        in: query
+        name: category
+        type: string
+      - description: Sort direction (ASC default)
+        in: query
+        name: sortDir
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/storage.Contact_'
+            type: array
+      summary: Get list of contacts
       tags:
       - Contacts
   /contacts/new-contact:
