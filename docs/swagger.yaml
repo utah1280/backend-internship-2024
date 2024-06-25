@@ -355,4 +355,53 @@ paths:
       summary: Create a new contact
       tags:
       - Contacts
+  /contacts/update-contact/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Update contact details by ID
+      parameters:
+      - description: Contact ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Contact name
+        in: query
+        name: name
+        type: string
+      - description: Contact phone
+        in: query
+        name: phone
+        type: string
+      - description: Contact email
+        in: query
+        name: email
+        type: string
+      - description: Contact address
+        in: query
+        name: address
+        type: string
+      - description: Contact category
+        in: query
+        name: category
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/contact.basicResponse'
+        "400":
+          description: Invalid contact ID
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Update an existing contact
+      tags:
+      - Contacts
 swagger: "2.0"

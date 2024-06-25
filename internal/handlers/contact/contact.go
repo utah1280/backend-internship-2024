@@ -180,3 +180,45 @@ func (handler *ContactHandler) GetContacts(ctx *fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusOK).JSON(resp)
 }
+
+// UpdateContact swagger
+// @Summary Update an existing contact
+// @Description Update contact details by ID
+// @Tags Contacts
+// @Accept json
+// @Produce json
+// @Param id path int true "Contact ID"
+// @Param name query string false "Contact name"
+// @Param phone query string false "Contact phone"
+// @Param email query string false "Contact email"
+// @Param address query string false "Contact address"
+// @Param category query string false "Contact category"
+// @Success 200 {object} basicResponse
+// @Failure 400 {string} string "Invalid contact ID"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /contacts/update-contact/{id} [patch]
+func (handler *ContactHandler) UpdateContact(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+
+	contactId, err := strconv.Atoi(id)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).SendString("Invalid contact ID")
+	}
+
+	name := ctx.Query("name", "")
+	phone := ctx.Query("phone", "")
+	email := ctx.Query("email")
+	address := ctx.Query("address")
+	category := ctx.Query("category", "")
+
+	err = handler.Storage.UpdateContact(contactId, name, phone, email, address, category)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	resp := basicResponse{
+		Success: true,
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(resp)
+}

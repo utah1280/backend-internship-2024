@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -165,4 +166,54 @@ func (storage *ContactStorage) GetContacts(limit, offset int, name, email, categ
 	}
 
 	return contacts, nil
+}
+
+func (storage *ContactStorage) UpdateContact(id int, name, phone, email, address, category string) error {
+	var temp int
+	checkStmt := "SELECT id FROM contacts WHERE email = $1"
+	err := storage.DB.QueryRow(checkStmt, email).Scan(&temp)
+
+	if err == nil {
+		return fmt.Errorf("email '%s' already exists", email)
+	}
+
+	stmt := "UPDATE contacts SET"
+	args := []interface{}{}
+	args = append(args, id)
+
+	if name != "" {
+		stmt += " name = $2,"
+		args = append(args, name)
+	}
+	if phone != "" {
+		stmt += " phone = $3,"
+		args = append(args, phone)
+	}
+	if address != "" {
+		stmt += " address = $4,"
+		args = append(args, address)
+	}
+	if category != "" {
+		categoryId, err := GetCategoryIdByLabel(storage.DB, category)
+		if err != nil {
+			return fmt.Errorf("error fetching category id: %v", err)
+		}
+
+		stmt += " category_id = $" + strconv.Itoa(len(args)+1) + ","
+		args = append(args, categoryId)
+	}
+	if email != "" {
+		stmt += " email = $" + strconv.Itoa(len(args)+1) + ","
+		args = append(args, email)
+	}
+
+	stmt = strings.TrimSuffix(stmt, ",")
+	stmt += " WHERE id = $1"
+
+	_, err = storage.DB.Exec(stmt, args...)
+	if err != nil {
+		return fmt.Errorf("error updating contact: %v", err)
+	}
+
+	return nil
 }

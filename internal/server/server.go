@@ -29,6 +29,7 @@ func NewFiberServer(lc fx.Lifecycle, contactHandlers *contact.ContactHandler, ca
 	contactGroup.Get("/get-contact/:id", contactHandlers.GetContact)
 	contactGroup.Delete("/delete-contact/:id", contactHandlers.DeleteContact)
 	contactGroup.Get("/get-contacts", contactHandlers.GetContacts)
+	contactGroup.Patch("/update-contact/:id", contactHandlers.UpdateContact)
 
 	categoryGroup := app.Group("/categories")
 	categoryGroup.Post("/add-category", categoryHandlers.AddCategory)
