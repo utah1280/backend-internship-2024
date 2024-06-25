@@ -1,0 +1,239 @@
+definitions:
+  category.basicResponse:
+    properties:
+      success:
+        type: boolean
+    type: object
+  category.categoryListResponse:
+    properties:
+      categories:
+        items:
+          $ref: '#/definitions/storage.Category'
+        type: array
+    type: object
+  category.categoryRequest:
+    properties:
+      label:
+        type: string
+    type: object
+  category.categoryResponse:
+    properties:
+      id:
+        type: integer
+    type: object
+  contact.basicResponse:
+    properties:
+      success:
+        type: boolean
+    type: object
+  contact.createContactRequest:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      label:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+  contact.createContactResponse:
+    properties:
+      id:
+        type: integer
+    type: object
+  contact.fetchContactResponse:
+    properties:
+      contact:
+        $ref: '#/definitions/storage.Contact'
+    type: object
+  storage.Category:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      label:
+        type: string
+    type: object
+  storage.Contact:
+    properties:
+      address:
+        type: string
+      category_id:
+        type: integer
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /categories/add-category:
+    post:
+      consumes:
+      - application/json
+      description: Create a new category with the given label
+      parameters:
+      - description: Category details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/category.categoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/category.categoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Create a new category
+      tags:
+      - Categories
+  /categories/delete-category/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete category with the given id
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/category.basicResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Delete category
+      tags:
+      - Categories
+  /categories/get-categories:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/category.categoryListResponse'
+      summary: Get list of categories
+      tags:
+      - Categories
+  /contacts/delete-contact/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete contact with the given id
+      parameters:
+      - description: Contact ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/contact.basicResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Delete contact
+      tags:
+      - Contacts
+  /contacts/get-contact/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of a contact based on the provided ID
+      parameters:
+      - description: Contact ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/contact.fetchContactResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Get a contact by ID
+      tags:
+      - Contacts
+  /contacts/new-contact:
+    post:
+      consumes:
+      - application/json
+      description: Create a new contact with the given details
+      parameters:
+      - description: Contact details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/contact.createContactRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/contact.createContactResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Create a new contact
+      tags:
+      - Contacts
+swagger: "2.0"
